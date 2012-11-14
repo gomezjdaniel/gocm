@@ -1,21 +1,20 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"os"
-	"encoding/json"
 )
 
 var configFlag = flag.String("config", "", "config path")
+
 type Params struct {
 	ApiKey string
-	Port int
+	Port   int
 }
 
-
 func main() {
-
 	flag.Parse()
 
 	if *configFlag == "" {
@@ -30,7 +29,6 @@ func main() {
 		return
 	}
 	defer configFile.Close()
-
 
 	d := json.NewDecoder(configFile)
 	var config *Params
