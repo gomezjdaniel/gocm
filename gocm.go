@@ -1,46 +1,54 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"os"
+	"net"
 )
 
-var configFlag = flag.String("config", "", "config path")
-
-type Params struct {
-	ApiKey string
-	Port   int
-}
+var apiKeyFlag = flag.String("apikey", "", "google api key for gcm")
+var portFlag = flag.Int("port", 0, "listening port")
 
 func main() {
 	flag.Parse()
 
-	if *configFlag == "" {
+	if *apiKeyFlag == "" || *portFlag == 0 {
 		fmt.Println("argument required")
 		flag.Usage()
 		return
 	}
 
-	configFile, err := os.Open(*configFlag)
+	if *portFlag < 8000 {
+		fmt.Println("can't start server. port must be >= 8000")
+		return
+	}
+
+	err := startServer(*portFlag)
 	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer configFile.Close()
-
-	d := json.NewDecoder(configFile)
-	var config *Params
-
-	if err := d.Decode(config); err != nil {
-		fmt.Println(err)
+		fmt.Println("can't start server")
 		return
 	}
 
-	if config.ApiKey == "" || config.Port < 8000 {
-		fmt.Println("ApiKey is empty or the port name is incorrect (Port >= 8000)")
-		return
+}
+
+func startServer(port int) error {
+	portString := fmt.Sprintf(":%d", *portFlag)
+	l, err := net.Listen("tcp", portString)
+	if err != nil {
+		return err
 	}
+
+	for {
+		conn, err := l.Accept()
+		if err != nil {
+			return err
+		}
+
+		go msgReceiver(conn)
+	}
+	return nil
+}
+
+func msgReceiver(conn net.Conn) {
 
 }
