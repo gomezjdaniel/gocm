@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"net"
+	"strings"
 )
 
 var apiKeyFlag = flag.String("apikey", "", "google api key for gcm")
@@ -23,8 +25,7 @@ func main() {
 		return
 	}
 
-	err := startServer(*portFlag)
-	if err != nil {
+	if err := startServer(*portFlag); err != nil {
 		fmt.Println("can't start server")
 		return
 	}
@@ -51,4 +52,21 @@ func startServer(port int) error {
 
 func msgReceiver(conn net.Conn) {
 
+	buf := bufio.NewReader(conn)
+	line, isPrefix, err := buf.ReadLine()
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if isPrefix != false {
+		fmt.Println("line too long")
+		return
+	}
+
+	body := string(line)
+	parts := strings.Split(body, ":")
+
+	_ = parts
 }
